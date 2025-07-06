@@ -1,6 +1,5 @@
 package com.example.p2p.resourceServer.exeption;
 
-import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 

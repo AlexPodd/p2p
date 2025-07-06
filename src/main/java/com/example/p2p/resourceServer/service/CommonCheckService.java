@@ -7,6 +7,7 @@ import com.example.p2p.resourceServer.model.Check;
 import com.example.p2p.resourceServer.model.currency.Currency;
 import com.example.p2p.resourceServer.repository.CheckRepository;
 import com.example.p2p.resourceServer.util.CurrencyUtil;
+import com.example.p2p.resourceServer.util.UserContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -21,10 +22,11 @@ public class CommonCheckService implements CheckService
 {
     private final CheckRepository repository;
     private final CurrencyUtil currencyUtil;
-
-    public CommonCheckService(CheckRepository repository, CurrencyUtil currencyUtil){
+    private final UserContext context;
+    public CommonCheckService(CheckRepository repository, CurrencyUtil currencyUtil, UserContext context){
         this.repository = repository;
         this.currencyUtil = currencyUtil;
+        this.context = context;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class CommonCheckService implements CheckService
         currency.setAmount_integer(amount_integer);
         currency.setAmount_fraction(amount_fraction);
         long id = new SecureRandom().nextLong() & Long.MAX_VALUE;
-        repository.saveCheck(id , getUserName() , currency);
+        repository.saveCheck(id , context.getUserName() , currency);
     }
 
     @Override
@@ -58,18 +60,14 @@ public class CommonCheckService implements CheckService
 
     @Override
     public void isUsersCheck(long checkID) {
-        if(!repository.getNameByID(checkID).equals(getUserName())){
+        if(!repository.getNameByID(checkID).equals(context.getUserName())){
             throw new NoAccessToCheckException();
         }
     }
 
     @Override
     public ArrayList<Long> getAllCheck() {
-        return repository.getAllCheck(getUserName());
+        return repository.getAllCheck(context.getUserName());
     }
 
-    private String getUserName(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication.getName();
-    }
 }

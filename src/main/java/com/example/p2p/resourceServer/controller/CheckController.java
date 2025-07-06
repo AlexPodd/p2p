@@ -7,6 +7,7 @@ import com.example.p2p.resourceServer.dto.CheckDTO;
 import com.example.p2p.resourceServer.dto.IdRequest;
 import com.example.p2p.resourceServer.service.CheckService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -16,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/check")
+@RequestMapping("/checks")
+@Validated
 public class CheckController {
-//open (s summoi) close watch perevod
 
     private final CheckService checkService;
 
@@ -26,28 +27,28 @@ public class CheckController {
         this.checkService = checkService;
     }
 
-    @PostMapping("/create")
+    @PostMapping()
     public ResponseEntity<?> createCheck(@RequestBody @Valid CheckDTO check) throws Exception {
         checkService.createCheck(check);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("{\"message\":\"Check created successfully\"}");
     }
 
-    @PostMapping("/close")
-    public ResponseEntity<?> closeCheck(@RequestBody IdRequest id) throws Exception {
-        checkService.closeCheck(id.getId());
-        return ResponseEntity.status(HttpStatus.GONE)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> closeCheck(@PathVariable @Min(1) long id) throws Exception {
+        checkService.closeCheck(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT)
                 .body("{\"message\":\"Check close successfully\"}");
     }
 
-    @GetMapping("/get")
-    public ResponseEntity<BalanceResponse> getBalance(@RequestParam  long id) throws Exception {
+    @GetMapping("/{id}")
+    public ResponseEntity<BalanceResponse> getBalance(@PathVariable @Min(1) long id) throws Exception {
         String balance = checkService.getBalance(id);
         return ResponseEntity.ok()
                 .body(new BalanceResponse(balance, "Balance retrieved successfully"));
     }
 
-    @GetMapping("/getAll")
+    @GetMapping()
     public ResponseEntity<List<Long>> getAllCheck() throws Exception {
         return ResponseEntity.ok(checkService.getAllCheck());
     }

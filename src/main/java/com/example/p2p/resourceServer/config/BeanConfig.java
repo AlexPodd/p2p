@@ -3,6 +3,7 @@ package com.example.p2p.resourceServer.config;
 
 import com.example.p2p.resourceServer.util.CurrencyProperties;
 import com.example.p2p.resourceServer.util.CurrencyUtil;
+import com.example.p2p.resourceServer.util.UserContext;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,5 +22,9 @@ public class BeanConfig {
         return new CurrencyUtil(currencyProperties);
     }
 
+    @Bean
+    public UserContext userContext(){
+        return new UserContext();
+    }
 
 }

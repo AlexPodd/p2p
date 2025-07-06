@@ -7,7 +7,7 @@ public class Currency implements Cloneable {
     protected final int precision;
     protected BigInteger amount_integer, amount_fraction;
 
-    protected Currency(String code, int precision) {
+    public Currency(String code, int precision) {
         this.code = code;
         this.precision = precision;
     }
