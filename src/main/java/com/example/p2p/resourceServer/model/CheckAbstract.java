@@ -5,13 +5,13 @@ import com.example.p2p.resourceServer.model.currency.CurrencyType;
 
 public abstract class CheckAbstract {
     protected long id;
-    protected long userID;
+    protected String userID;
     protected CurrencyType type;
     protected Currency currency;
 
     public CheckAbstract(){
     }
-    public CheckAbstract(long id, long userID, CurrencyType type, Currency currency) {
+    public CheckAbstract(long id, String userID, CurrencyType type, Currency currency) {
         this.id = id;
         this.userID = userID;
         this.type = type;
@@ -26,11 +26,11 @@ public abstract class CheckAbstract {
         this.id = id;
     }
 
-    public long getUserID() {
+    public String getUserID() {
         return userID;
     }
 
-    public void setUserID(long userID) {
+    public void setUserID(String userID) {
         this.userID = userID;
     }
 

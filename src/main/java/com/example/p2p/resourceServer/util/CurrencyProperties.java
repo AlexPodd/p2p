@@ -16,11 +16,6 @@ public class CurrencyProperties {
     private Map<String, Currency> currencies = new HashMap<>();
 
 
-    /*@PostConstruct
-    public void logCurrencies() {
-        System.out.println("Loaded currencies: " + currencies);
-    }*/
-
     public void setCurrencies(Map<String, Currency> currencies) {
         this.currencies = currencies;
     }

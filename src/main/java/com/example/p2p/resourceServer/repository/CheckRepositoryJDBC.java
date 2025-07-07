@@ -8,6 +8,7 @@ import com.example.p2p.resourceServer.model.CheckAbstract;
 import com.example.p2p.resourceServer.model.currency.Currency;
 import com.example.p2p.resourceServer.util.CurrencyUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
@@ -40,10 +41,7 @@ public class CheckRepositoryJDBC implements CheckRepository{
         parameters.put("currency_code", currency.getCode());
         parameters.put("amount_integer", currency.getAmount_integer());
         parameters.put("amount_fraction", currency.getAmount_fraction());
-        int rowsAffected = simpleJdbcInsert.execute(parameters);
-        if(rowsAffected != 1){
-            throw new Exception("123");
-        }
+        simpleJdbcInsert.execute(parameters);
     }
 
     @Override
@@ -58,11 +56,7 @@ public class CheckRepositoryJDBC implements CheckRepository{
     @Override
     public CheckAbstract getCheckByID(long id, CheckAbstract check) {
         String query = "SELECT * FROM checks WHERE id = ?";
-        CheckAbstract checkAbstract = jdbcTemplate.queryForObject(query, new CheckRowMapper<>(check.getClass(),currencyUtil), id);
-        if(checkAbstract == null){
-            throw new NoSuchCheckException();
-        }
-        return checkAbstract;
+        return jdbcTemplate.queryForObject(query, new CheckRowMapper<>(check.getClass(),currencyUtil), id);
     }
 
     @Override
@@ -72,7 +66,8 @@ public class CheckRepositoryJDBC implements CheckRepository{
             return jdbcTemplate.queryForObject(query, String.class, id);
         } catch (EmptyResultDataAccessException e) {
             throw new NoSuchCheckException();
-        }}
+        }
+    }
 
     @Override
     public ArrayList<Long> getAllCheck(String username) {
@@ -82,6 +77,40 @@ public class CheckRepositoryJDBC implements CheckRepository{
                 (rs, rowNum) -> rs.getLong("id"),
                 username
         ));
+    }
+
+    @Override
+    public void isExist(long id) {
+        String sql = "SELECT COUNT(*) FROM checks WHERE id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+        if (count == null || count == 0) {
+            throw new NoSuchCheckException();
+        }
+    }
+
+    @Override
+    public void updateCheck(CheckAbstract check) {
+        String sql = "UPDATE checks SET amount_integer = ?, amount_fraction = ? WHERE id = ?";
+        int updated = jdbcTemplate.update(
+                sql,
+                check.getCurrency().getAmount_integer(),
+                check.getCurrency().getAmount_fraction(),
+                check.getId()
+        );
+
+        if (updated == 0) {
+            throw new NoSuchCheckException();
+        }
+    }
+
+    @Override
+    public String getTypeByID(long id) {
+        String query = "SELECT currency_code FROM checks WHERE id = ?";
+        try {
+            return jdbcTemplate.queryForObject(query, String.class, id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new NoSuchCheckException();
+        }
     }
 
 

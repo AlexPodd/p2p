@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @WebMvcTest(CheckController.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestSecurityConfig.class, ExceptionController.class})
+@Import({TestSecurityConfig.class})
 public class CheckControllerCreateTest {
 
     @MockitoBean
@@ -140,4 +140,7 @@ public class CheckControllerCreateTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Неверный тип чека!"));
     }
+
+
+
 }

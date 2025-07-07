@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(CheckController.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestSecurityConfig.class, ExceptionController.class})
+@Import({TestSecurityConfig.class})
 public class CheckControllerGetChecksTest {
     @MockitoBean
     private CheckService service;

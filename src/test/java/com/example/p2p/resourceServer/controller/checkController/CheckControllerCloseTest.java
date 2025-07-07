@@ -12,21 +12,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @WebMvcTest(CheckController.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import({TestSecurityConfig.class, ExceptionController.class})
+@Import({TestSecurityConfig.class})
 public class CheckControllerCloseTest {
     @MockitoBean
     private CheckService service;
@@ -79,5 +80,32 @@ public class CheckControllerCloseTest {
     void testCloseCheckZeroID() throws Exception {
         mockMvc.perform(delete("/checks/0"))
                 .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
+    void testEmptyResultDataAccessException() throws Exception {
+        long id = 1;
+
+        doThrow(new EmptyResultDataAccessException("No row", 1))
+                .when(service).closeCheck(id);
+
+        mockMvc.perform(delete("/checks/{id}", id))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Resource not found"))
+                .andExpect(jsonPath("$.details").exists());
+    }
+
+    @Test
+    void testDataAccessException() throws Exception {
+        long id = 1;
+
+        doThrow(new DataAccessException("DB is down") {})
+                .when(service).closeCheck(id);
+
+        mockMvc.perform(delete("/checks/{id}", id))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Database error"))
+                .andExpect(jsonPath("$.details").exists());
     }
 }

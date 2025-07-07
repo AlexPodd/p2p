@@ -3,6 +3,8 @@ package com.example.p2p.resourceServer.service;
 import com.example.p2p.resourceServer.dto.CheckDTO;
 import com.example.p2p.resourceServer.exeption.InvalidCheckTypeException;
 import com.example.p2p.resourceServer.exeption.NoAccessToCheckException;
+import com.example.p2p.resourceServer.exeption.NoSuchCheckException;
+import com.example.p2p.resourceServer.model.Check;
 import com.example.p2p.resourceServer.model.currency.Currency;
 import com.example.p2p.resourceServer.repository.CheckRepository;
 import com.example.p2p.resourceServer.util.CurrencyUtil;
@@ -17,6 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,6 +28,7 @@ import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
+
 public class CommonCheckServiceTest {
     @Mock
     private CheckRepository repository;
@@ -113,4 +118,82 @@ public class CommonCheckServiceTest {
         });
     }
 
+    @Test
+    void testCloseCheckInvalidCheck() throws Exception {
+        long checkId = 1;
+
+        when(userContext.getUserName()).thenReturn("testUser");
+        when(repository.getNameByID(checkId)).thenReturn("testUser");
+
+        doThrow(new NoSuchCheckException()).when(repository).deleteCheckByID(checkId);
+
+            assertThrows(NoSuchCheckException.class, () -> {
+                service.closeCheck(checkId);
+            });
+    }
+
+
+    @Test
+    void testGetAllCheckSuccess() throws Exception {
+        ArrayList<Long> checkId = new ArrayList<>(List.of(10L,12L,15L));
+        when(repository.getAllCheck(any())).thenReturn(checkId);
+
+        ArrayList<Long> serviceAnswer = service.getAllCheck();
+        assertEquals(checkId, serviceAnswer);
+    }
+
+    @Test
+    void testGetAllCheckSuccessEmpty() throws Exception {
+        ArrayList<Long> checkId = new ArrayList<>();
+        when(repository.getAllCheck(any())).thenReturn(checkId);
+
+        ArrayList<Long> serviceAnswer = service.getAllCheck();
+
+        assertEquals(checkId, serviceAnswer);
+    }
+
+
+    @Test
+    void testBalanceCheckSuccess() throws Exception {
+        Long id = 10L;
+        Check mockCheck = new Check();
+        Currency mockCurrency = new Currency("USD", 2);
+        mockCurrency.setAmount_integer(new BigInteger("100"));
+        mockCurrency.setAmount_fraction(new BigInteger("10"));
+
+        when(userContext.getUserName()).thenReturn("testUser");
+        when(repository.getNameByID(id)).thenReturn("testUser");
+
+        mockCheck.setCurrency(mockCurrency);
+
+        when(repository.getCheckByID(eq(id), any(Check.class))).thenReturn(mockCheck);
+
+        String balance = service.getBalance(id);
+        assertEquals("100.10", balance);
+    }
+
+
+    @Test
+    void testBalanceCheckWrongUser() throws Exception {
+        Long id = 10L;
+        when(userContext.getUserName()).thenReturn("testUser");
+        when(repository.getNameByID(id)).thenReturn("testUser1");
+        assertThrows(NoAccessToCheckException.class, () -> {
+            service.getBalance(id);
+        });
+    }
+
+
+    @Test
+    void testBalanceNoSuchCheck() throws Exception {
+        Long id = 10L;
+        when(userContext.getUserName()).thenReturn("testUser");
+        when(repository.getNameByID(id)).thenReturn("testUser");
+
+        doThrow(new NoSuchCheckException()).when(repository).getCheckByID(eq(id), any());
+
+        assertThrows(NoSuchCheckException.class, () -> {
+            service.getBalance(id);
+        });
+    }
 }

@@ -46,4 +46,38 @@ public class Currency implements Cloneable {
         return precision;
     }
 
+    public void add(Currency other) {
+        if (!this.code.equals(other.code) || this.precision != other.precision) {
+            throw new IllegalArgumentException("Mismatched currency code or precision");
+        }
+
+        BigInteger base = BigInteger.TEN.pow(precision);
+
+        BigInteger totalThis = this.amount_integer.multiply(base).add(this.amount_fraction);
+        BigInteger totalOther = other.amount_integer.multiply(base).add(other.amount_fraction);
+        BigInteger result = totalThis.add(totalOther);
+
+        this.amount_integer = result.divide(base);
+        this.amount_fraction = result.remainder(base);
+    }
+
+    public void subtract(Currency other) {
+        if (!this.code.equals(other.code) || this.precision != other.precision) {
+            throw new IllegalArgumentException("Mismatched currency code or precision");
+        }
+
+        BigInteger base = BigInteger.TEN.pow(precision);
+
+        BigInteger totalThis = this.amount_integer.multiply(base).add(this.amount_fraction);
+        BigInteger totalOther = other.amount_integer.multiply(base).add(other.amount_fraction);
+
+        if (totalThis.compareTo(totalOther) < 0) {
+            throw new IllegalArgumentException("Not enough funds to subtract");
+        }
+
+        BigInteger result = totalThis.subtract(totalOther);
+
+        this.amount_integer = result.divide(base);
+        this.amount_fraction = result.remainder(base);
+    }
 }

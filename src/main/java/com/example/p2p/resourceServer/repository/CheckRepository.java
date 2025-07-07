@@ -11,4 +11,7 @@ public interface CheckRepository {
     CheckAbstract getCheckByID(long id, CheckAbstract check) throws Exception;
     String getNameByID(long id);
     ArrayList<Long> getAllCheck(String username);
+    void isExist(long id);
+    void updateCheck(CheckAbstract check);
+    String getTypeByID(long id);
 }
