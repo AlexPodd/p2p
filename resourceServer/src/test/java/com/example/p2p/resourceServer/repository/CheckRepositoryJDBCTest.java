@@ -34,6 +34,7 @@ public class CheckRepositoryJDBCTest {
 
     @BeforeEach
     void setUp() {
+        jdbcTemplate.execute("DELETE FROM transfers");
         jdbcTemplate.execute("DELETE FROM checks");
         jdbcTemplate.execute("INSERT INTO checks (id, user_id, currency_code, amount_integer, amount_fraction) VALUES (1, 'testUser', 'USD', 100, 20)");
     }

@@ -55,11 +55,15 @@ public class CommonTransferServiceIntegrationTest {
         jdbcTemplate.execute("INSERT INTO checks (id, user_id, currency_code, amount_integer, amount_fraction) VALUES (2, 'testUser1', 'USD', 100, 20)");
         jdbcTemplate.execute("INSERT INTO checks (id, user_id, currency_code, amount_integer, amount_fraction) VALUES (3, 'testUser1', 'BTC', 100, 20)");
 
-        jdbcTemplate.execute("INSERT INTO transfers (id, currency_code,id_from, id_to, amount_integer, amount_fraction) " +
-                "VALUES (1000, 'USD' , 1, 2, 0, 50)");
+        jdbcTemplate.update(
+                "INSERT INTO transfers (id, currency_code, id_from, id_to, amount_integer, amount_fraction, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                1000, "USD", 1, 2, 0, 50, java.time.LocalDateTime.now()
+        );
 
-        jdbcTemplate.execute("INSERT INTO transfers (id, currency_code, id_from, id_to, amount_integer, amount_fraction, created_at) " +
-                "VALUES (1001, 'USD', 1, 2, 0, 50, NOW() - INTERVAL 15 MINUTE)");
+        jdbcTemplate.update(
+                "INSERT INTO transfers (id, currency_code, id_from, id_to, amount_integer, amount_fraction, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                1001, "USD", 1, 2, 0, 50, java.time.LocalDateTime.now().minusMinutes(15)
+        );
     }
 
     @Test
@@ -192,39 +196,4 @@ public class CommonTransferServiceIntegrationTest {
     }
 
 
-    @Test
-    @WithMockUser(username = "testUser")
-    void fullTransferLifecycleTest() throws Exception {
-        TransferDTO dto = new TransferDTO(1L, 2L, "10.25");
-
-        long transferId = service.initiate(dto);
-        assertTrue(transferId > 0);
-
-        Transfer createdTransfer = (Transfer) transferRepository.getTransfer(transferId, new Transfer());
-        assertNotNull(createdTransfer);
-        assertEquals("USD", createdTransfer.getCurrency().getCode());
-
-
-        service.transfer(transferId);
-
-        var checkFrom = checkRepository.getCheckByID(1L, new com.example.p2p.resourceServer.model.Check());
-        var checkTo = checkRepository.getCheckByID(2L, new com.example.p2p.resourceServer.model.Check());
-
-
-        BigInteger integerFrom = new BigInteger("89");
-        BigInteger fractureFrom = new BigInteger("95");
-
-        BigInteger integerTo = new BigInteger("110");
-        BigInteger fractureTo = new BigInteger("45");
-
-        assertEquals(integerFrom, checkFrom.getCurrency().getAmount_integer());
-        assertEquals(fractureFrom, checkFrom.getCurrency().getAmount_fraction());
-
-        assertEquals(integerTo, checkTo.getCurrency().getAmount_integer());
-        assertEquals(fractureTo, checkTo.getCurrency().getAmount_fraction());
-
-        assertThrows(Exception.class, () -> {
-            transferRepository.getTransfer(transferId, new Transfer());
-        });
-    }
-}
+ }

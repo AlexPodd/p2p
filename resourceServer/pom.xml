@@ -34,10 +34,18 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.example.p2p.resourceServer.P2pApplication</mainClass>
+                    <layout>JAR</layout>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
 
             </plugin>
-         </plugins>
+        </plugins>
 
     </build>
     <artifactId>resource-server</artifactId>
