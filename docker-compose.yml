@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: p2p
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - p2pnet
+
+  auth-server:
+    build:
+      context: ./auth-server
+    container_name: auth-server
+    depends_on:
+      - mysql
+    ports:
+      - "8000:8000"
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - p2pnet
+
+  resource-server:
+    build:
+      context: ./resourceServer
+    container_name: resource-server
+    depends_on:
+      - mysql
+      - auth-server
+    ports:
+      - "9000:9000"
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+    networks:
+      - p2pnet
+
+volumes:
+  mysql_data:
+
+networks:
+  p2pnet:
