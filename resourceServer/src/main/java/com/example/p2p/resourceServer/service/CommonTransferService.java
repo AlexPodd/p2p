@@ -9,6 +9,7 @@ import com.example.p2p.resourceServer.repository.CheckRepository;
 import com.example.p2p.resourceServer.repository.TransferRepository;
 import com.example.p2p.resourceServer.util.CurrencyUtil;
 import com.example.p2p.resourceServer.util.UserContext;
+import com.example.p2p.resourceServer.util.transferValidatorChain.EnoughValueValid;
 import com.example.p2p.resourceServer.util.transferValidatorChain.TransferValidator;
 import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +34,15 @@ public class CommonTransferService implements TransferService{
     private final TransferRepository transferRepository;
     private final CurrencyUtil currencyUtil;
     private final UserContext context;
+    private final EnoughValueValid enoughValueValid;
 
-    public CommonTransferService(List<TransferValidator> validators, CurrencyUtil currencyUtil, UserContext context, TransferRepository transferRepository, CheckRepository checkRepository) {
+    public CommonTransferService(List<TransferValidator> validators, CurrencyUtil currencyUtil, UserContext context, TransferRepository transferRepository, CheckRepository checkRepository, EnoughValueValid enoughValueValid) {
         this.validators= validators;
         this.currencyUtil = currencyUtil;
         this.context = context;
         this.transferRepository = transferRepository;
         this.checkRepository = checkRepository;
+        this.enoughValueValid = enoughValueValid;
     }
 
     @Override
@@ -56,6 +59,8 @@ public class CommonTransferService implements TransferService{
             throw new ExpireTransactionException();
         }
 
+        String sum = transfer.getCurrency().getAmount_integer()+"."+transfer.getCurrency().getAmount_fraction();
+        enoughValueValid.validate(new TransferDTO(transfer.getCheckFromId(), transfer.getCheckToId(), sum),checkRepository);
         Check checkFrom = (Check) checkRepository.getCheckByID(transfer.getCheckFromId(), new Check());
         Check checkTo = (Check) checkRepository.getCheckByID(transfer.getCheckToId(), new Check());
 
